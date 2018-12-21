@@ -9,6 +9,8 @@ type ListNode struct {
 	Next *ListNode
 }
 
+// 模拟加法.
+// TAG: 链表, O(n)
 func addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
 	if l1 == nil || l2 == nil {
 		return nil

@@ -4,6 +4,8 @@ func main() {
 
 }
 
+// 寻找两个已排序数组的中位数.
+// TAG: O(n)
 func findMedianSortedArrays(nums1 []int, nums2 []int) float64 {
 
 	m := len(nums1)

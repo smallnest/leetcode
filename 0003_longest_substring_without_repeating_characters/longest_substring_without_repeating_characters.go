@@ -4,6 +4,8 @@ func main() {
 
 }
 
+// 不带重复字母的最长子串.
+// TAG: O(n*n)
 func lengthOfLongestSubstring(s string) int {
 	if len(s) == 0 {
 		return 0
