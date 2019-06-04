@@ -31,6 +31,7 @@ func addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
 			l2 = l2.Next
 		}
 
+		// 计算当前的值和进位
 		if v > 9 {
 			v = v - 10
 			carry = 1

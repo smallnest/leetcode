@@ -4,39 +4,28 @@ func main() {
 
 }
 
-// 不带重复字母的最长子串.
-// TAG: O(n*n)
+// 不带重复字母的最长子串. (子字符串substring，不是子序列subsequence)
+// TAG: O(n)
+// 思路: 使用数组记录已发现字符的当前位置。使用两个指针start, i移动，当前的搜寻范围为(start,i)的字符串
 func lengthOfLongestSubstring(s string) int {
 	if len(s) == 0 {
 		return 0
 	}
 
-	max := 1
-	cur := 1
-	start := 0
+	var m = make(map[byte]int, 256)
 
-	for i := 1; i < len(s); i++ {
-		c := s[i]
-
-		// check repeated char
-		found := false
-		for j := i - 1; j >= start; j-- {
-			if s[j] == c {
-				cur = i - j
-				start = j + 1
-				found = true
-				break
+	maxLen := 0
+	start := -1
+	for i := 0; i < len(s); i++ {
+		if j, ok := m[s[i]]; ok {
+			if j > start { // 在本次的搜寻范围内
+				start = j
 			}
 		}
-
-		// step
-		if !found {
-			cur++
-		}
-		if cur > max {
-			max = cur
+		m[s[i]] = i
+		if i-start > maxLen {
+			maxLen = i - start
 		}
 	}
-
-	return max
+	return maxLen
 }
