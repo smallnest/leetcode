@@ -22,7 +22,7 @@ func (coo *Coordinator) Accquire(i int) {
 	<-coo.chans[i]
 }
 
-// ReleaseTo releases the token ans passes it to i.
-func (coo *Coordinator) ReleaseTo(i int) {
+// Handoff passes the token to i.
+func (coo *Coordinator) Handoff(i int) {
 	coo.chans[i] <- struct{}{}
 }

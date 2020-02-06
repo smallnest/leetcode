@@ -12,34 +12,32 @@ type ZeroEvenOdd struct {
 	coo *co.Coordinator
 }
 
-type Accept func(x int)
-
-func (zeo *ZeroEvenOdd) zero(accept Accept) {
+func (zeo *ZeroEvenOdd) zero(accept co.Accept) {
 	for i := 1; i <= zeo.n; i++ {
 		zeo.coo.Accquire(0)
 		accept(0)
 		if i%2 == 0 {
-			zeo.coo.ReleaseTo(1)
+			zeo.coo.Handoff(1)
 		} else {
-			zeo.coo.ReleaseTo(2)
+			zeo.coo.Handoff(2)
 		}
 	}
 
 }
 
-func (zeo *ZeroEvenOdd) even(accept Accept) {
+func (zeo *ZeroEvenOdd) even(accept co.Accept) {
 	for i := 0; i < zeo.n/2; i++ {
 		zeo.coo.Accquire(1)
 		accept((i + 1) * 2)
-		zeo.coo.ReleaseTo(0)
+		zeo.coo.Handoff(0)
 	}
 }
 
-func (zeo *ZeroEvenOdd) odd(accept Accept) {
+func (zeo *ZeroEvenOdd) odd(accept co.Accept) {
 	for i := 0; i < (zeo.n+1)/2; i++ {
 		zeo.coo.Accquire(2)
 		accept(i*2 + 1)
-		zeo.coo.ReleaseTo(0)
+		zeo.coo.Handoff(0)
 	}
 }
 
@@ -53,7 +51,7 @@ func main() {
 		n:   9,
 		coo: co.NewCoordinator(3),
 	}
-	zeo.coo.ReleaseTo(0)
+	zeo.coo.Handoff(0)
 
 	go func() {
 		zeo.zero(accept)
