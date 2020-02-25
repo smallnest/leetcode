@@ -1,43 +1,50 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"sync"
 
-	co "github.com/smallnest/leetcode/concurrency"
+	"github.com/smallnest/syncx"
 )
 
+type Runnable func()
+
 type FooBar struct {
-	n int
+	n     int
+	token *syncx.Token
 }
 
-func (fb FooBar) foo(printFoo co.Runnable) {
-	fooCh <- struct{}{}
+func (fb FooBar) foo(printFoo Runnable) {
 	for i := 0; i < fb.n; i++ {
-		<-fooCh
+		fb.token.Accquire(context.TODO(), 0)
 		printFoo()
-		barCh <- struct{}{}
+		fb.token.Handoff(context.TODO(), 1)
 	}
 }
 
-func (fb FooBar) bar(printBar co.Runnable) {
+func (fb FooBar) bar(printBar Runnable) {
 	for i := 0; i < fb.n; i++ {
-		<-barCh
+		fb.token.Accquire(context.TODO(), 1)
 		printBar()
-		fooCh <- struct{}{}
+		fb.token.Handoff(context.TODO(), 0)
 	}
 }
-
-var fooCh = make(chan struct{}, 1)
-var barCh = make(chan struct{}, 1)
 
 func main() {
-	printFoo := co.WrapPrint("foo")
-	printBar := co.WrapPrint("bar")
+	printFoo := func() {
+		fmt.Print("foo")
+	}
+	printBar := func() {
+		fmt.Print("bar")
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	foobar := FooBar{n: 10}
+	token := syncx.NewToken(2)
+	foobar := FooBar{n: 10, token: token}
+
 	go func() {
 		foobar.foo(printFoo)
 		wg.Done()
@@ -47,5 +54,7 @@ func main() {
 		wg.Done()
 	}()
 
+	// trigger to start
+	token.Handoff(context.TODO(), 0)
 	wg.Wait()
 }

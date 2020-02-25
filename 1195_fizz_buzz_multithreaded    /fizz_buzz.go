@@ -1,67 +1,63 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
 
-	co "github.com/smallnest/leetcode/concurrency"
+	"github.com/smallnest/syncx"
 )
 
+type Accept func(x int)
+
 type FizzBuzz struct {
-	n   int
-	coo *co.Coordinator
+	n     int
+	token *syncx.Token
 }
 
-func (fb *FizzBuzz) fizz(printFizz co.Accept) {
+func (fb *FizzBuzz) fizz(printFizz Accept) {
 	for i := 1; i <= fb.n; i++ {
-		fb.coo.Accquire(0)
+		fb.token.Accquire(context.TODO(), 0)
 		if i%3 == 0 && i%15 != 0 {
 			printFizz(i)
 		}
-		fb.coo.Handoff(1)
+		fb.token.Handoff(context.TODO(), 1)
 	}
 }
 
-func (fb *FizzBuzz) buzz(printBuzz co.Accept) {
+func (fb *FizzBuzz) buzz(printBuzz Accept) {
 	for i := 1; i <= fb.n; i++ {
-		fb.coo.Accquire(1)
+		fb.token.Accquire(context.TODO(), 1)
 		if i%5 == 0 && i%15 != 0 {
 			printBuzz(i)
 		}
-		fb.coo.Handoff(2)
+		fb.token.Handoff(context.TODO(), 2)
 	}
 }
 
-func (fb *FizzBuzz) fizzbuzz(printFizzBuzz co.Accept) {
+func (fb *FizzBuzz) fizzbuzz(printFizzBuzz Accept) {
 	for i := 1; i <= fb.n; i++ {
-		fb.coo.Accquire(2)
+		fb.token.Accquire(context.TODO(), 2)
 		if i%15 == 0 {
 			printFizzBuzz(i)
 		}
-		fb.coo.Handoff(3)
+		fb.token.Handoff(context.TODO(), 3)
 	}
 }
 
-func (fb *FizzBuzz) number(printNumber co.Accept) {
+func (fb *FizzBuzz) number(printNumber Accept) {
 	for i := 1; i <= fb.n; i++ {
-		fb.coo.Accquire(3)
+		fb.token.Accquire(context.TODO(), 3)
 		if i%3 != 0 && i%5 != 0 {
 			printNumber(i)
 		}
-		fb.coo.Handoff(0)
+		fb.token.Handoff(context.TODO(), 0)
 	}
 }
 
 func main() {
-	if len(os.Args) == 1 || os.Args[1] == "1" {
-		main1()
-		return
-	}
-}
-func main1() {
 	var result []string
 	fizz := func(x int) { result = append(result, "fizz") }
 	buzz := func(x int) { result = append(result, "buzz") }
@@ -71,12 +67,11 @@ func main1() {
 	var wg sync.WaitGroup
 	wg.Add(4)
 
+	token := syncx.NewToken(4)
 	fb := FizzBuzz{
-		n:   15,
-		coo: co.NewCoordinator(4),
+		n:     15,
+		token: token,
 	}
-
-	fb.coo.Handoff(0)
 
 	go func() {
 		fb.fizz(fizz)
@@ -98,6 +93,8 @@ func main1() {
 		wg.Done()
 	}()
 
+	// trigger to start
+	token.Handoff(context.TODO(), 0)
 	wg.Wait()
 
 	fmt.Println(strings.Join(result, ", "))
